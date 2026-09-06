@@ -1,4 +1,4 @@
-### NativeEndpoints
+### Minimal Endpoints
 
 - [[Home]]
 - [[Getting-Started]]
@@ -12,5 +12,5 @@
 
 ---
 
-[Repository](https://github.com/valence-works/NativeEndpoints) ·
-[Issues](https://github.com/valence-works/NativeEndpoints/issues)
+[Repository](https://github.com/valence-works/MinimalEndpoints) ·
+[Issues](https://github.com/valence-works/MinimalEndpoints/issues)

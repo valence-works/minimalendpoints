@@ -1,4 +1,4 @@
-using NativeEndpoints;
+using MinimalEndpoints;
 
 namespace Aot.Endpoints.Widgets.Get;
 

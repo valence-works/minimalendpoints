@@ -25,7 +25,7 @@ curl -X POST localhost:5081/admin/collect     # the definitive answer, see below
 
 **This split is the whole trick.** API Explorer retains an endpoint's request and response `Type` for
 the host's lifetime. Put those types in the collectible assembly and it can never be released — and
-NativeEndpoints will tell you so at map time, by rejecting the endpoint rather than letting you find
+Minimal Endpoints will tell you so at map time, by rejecting the endpoint rather than letting you find
 out in production. Contracts are shared and stable; only the implementation is collectible.
 
 Note what the plugin's endpoint class does *not* contain: nothing plugin-aware, no lifecycle hooks,

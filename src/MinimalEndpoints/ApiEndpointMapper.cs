@@ -1,0 +1,249 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using EndpointRouteAttribute = MinimalEndpoints.EndpointRouteAttribute;
+
+namespace MinimalEndpoints;
+
+/// <summary>
+/// Maps <see cref="ApiEndpointBase"/> classes onto a module's endpoint group.
+/// </summary>
+/// <remarks>
+/// Scanning is module-local and happens inside the module's own explicit mapping call: the module
+/// hands over its own assembly, the scan runs once per shell activation, and nothing found is stored
+/// anywhere that outlives the endpoint generation. This is deliberately not process-global assembly
+/// discovery, which is what ADR 0068 excludes.
+/// </remarks>
+public static class ApiEndpointMapper
+{
+    private const string ReflectiveMapping =
+        "Scans assemblies, closes generic methods at runtime, and activates endpoints reflectively. " +
+        "Use the source generator's Map(), which emits an explicit registration instead.";
+
+    /// <summary>Maps every concrete <see cref="ApiEndpointBase"/> in the assembly onto the group.</summary>
+    /// <remarks>
+    /// Reflective: it scans the assembly, closes generic methods at runtime, and activates endpoints
+    /// through the container. Annotated so a trimmed or native AOT build says so at the call site
+    /// rather than failing once deployed. The source generator emits an equivalent registration that
+    /// needs none of this.
+    /// </remarks>
+    /// <param name="api">The group the endpoints are mapped into.</param>
+    /// <param name="assembly">The assembly to scan. Scanning is local to this call and retains nothing.</param>
+    /// <param name="routePrefix">Prefix applied to attribute-declared routes, so attributes stay literal.</param>
+    [RequiresUnreferencedCode(ReflectiveMapping)]
+    [RequiresDynamicCode(ReflectiveMapping)]
+    public static EndpointGroup MapEndpointsFrom(this EndpointGroup api, Assembly assembly, string? routePrefix = null)
+    {
+        ArgumentNullException.ThrowIfNull(api);
+        ArgumentNullException.ThrowIfNull(assembly);
+
+        foreach (var type in assembly.GetTypes()
+                     .Where(type => !type.IsAbstract && typeof(ApiEndpointBase).IsAssignableFrom(type))
+                     .OrderBy(type => type.FullName, StringComparer.Ordinal))
+        {
+            MapEndpointCore(api, type, routePrefix);
+        }
+
+        return api;
+    }
+
+    /// <summary>Maps one endpoint class explicitly.</summary>
+    [RequiresUnreferencedCode(ReflectiveMapping)]
+    [RequiresDynamicCode(ReflectiveMapping)]
+    public static IEndpointConventionBuilder MapEndpoint<TEndpoint>(this EndpointGroup api, string? routePrefix = null)
+        where TEndpoint : ApiEndpointBase
+    {
+        ArgumentNullException.ThrowIfNull(api);
+        return MapEndpointCore(api, typeof(TEndpoint), routePrefix);
+    }
+
+    private static IEndpointConventionBuilder MapEndpointCore(EndpointGroup api, Type type, string? routePrefix)
+    {
+        // Resolved before anything else so a class the scan picked up but cannot map fails with the
+        // shape named, not with a misleading complaint about its route or Configure.
+        var (shape, request, response) = FindContract(type)
+            ?? throw new InvalidOperationException(
+                $"Endpoint '{type.FullName}' derives from ApiEndpointBase but from none of the mappable bases. " +
+                "Derive ApiEndpoint<TRequest, TResponse>, ApiEndpoint<TRequest>, ApiEndpointWithoutRequest<TResponse>, " +
+                "ApiEndpointWithResult<TRequest, TResponse>, or the non-generic ApiEndpoint to write the response yourself.");
+
+        var options = new ApiEndpointOptions();
+        var route = type.GetCustomAttribute<EndpointRouteAttribute>();
+        if (route is not null)
+        {
+            options.Method = route.Method;
+            options.Route = Prefix(routePrefix, route.Route);
+        }
+
+        // Configure runs on an uninitialized instance so an endpoint's constructor dependencies are
+        // not needed at mapping time. It must therefore not touch instance state.
+        var configureInstance = (ApiEndpointBase)RuntimeHelpers.GetUninitializedObject(type);
+        configureInstance.Configure(options);
+
+        if (options.Method is null || options.Route is null)
+            throw new InvalidOperationException($"Endpoint '{type.FullName}' declares no route. Add a [Get]/[Post]/... attribute or set options.Method and options.Route in Configure.");
+        options.Operation ??= DeriveOperation(type);
+
+        var builder = shape switch
+        {
+            EndpointShape.Raw => MapRawEndpoint(api, type, options),
+            EndpointShape.Unbound => (IEndpointConventionBuilder)MapUnboundMethod
+                .MakeGenericMethod(response!)
+                .Invoke(null, [api, type, options])!,
+            EndpointShape.Result => (IEndpointConventionBuilder)MapResultMethod
+                .MakeGenericMethod(request!, response!)
+                .Invoke(null, [api, type, options])!,
+            _ => (IEndpointConventionBuilder)MapMethod
+                .MakeGenericMethod(request!, response ?? typeof(object))
+                .Invoke(null, [api, type, options, response is null])!
+        };
+
+        foreach (var attribute in type.GetCustomAttributes().OfType<IEndpointConventionAttribute>())
+            attribute.Apply(builder);
+        foreach (var convention in options.Conventions)
+            convention(builder);
+
+        return builder;
+    }
+
+    private enum EndpointShape
+    {
+        Body,
+        NoContent,
+        Unbound,
+        Result,
+        Raw
+    }
+
+    private static (EndpointShape shape, Type? request, Type? response)? FindContract(Type type)
+    {
+        // The raw base is non-generic and derives ApiEndpointBase directly, so the check runs before
+        // the generic walk: no generic base can sit between a raw endpoint and ApiEndpoint.
+        if (typeof(ApiEndpoint).IsAssignableFrom(type))
+            return (EndpointShape.Raw, null, null);
+
+        for (var current = type.BaseType; current is not null; current = current.BaseType)
+        {
+            if (!current.IsGenericType)
+                continue;
+            var definition = current.GetGenericTypeDefinition();
+            if (definition == typeof(ApiEndpoint<,>))
+                return (EndpointShape.Body, current.GenericTypeArguments[0], current.GenericTypeArguments[1]);
+            if (definition == typeof(ApiEndpoint<>))
+                return (EndpointShape.NoContent, current.GenericTypeArguments[0], null);
+            if (definition == typeof(ApiEndpointWithoutRequest<>))
+                return (EndpointShape.Unbound, null, current.GenericTypeArguments[0]);
+            if (definition == typeof(ApiEndpointWithResult<,>))
+                return (EndpointShape.Result, current.GenericTypeArguments[0], current.GenericTypeArguments[1]);
+        }
+
+        return null;
+    }
+
+    private static readonly MethodInfo MapMethod =
+        typeof(ApiEndpointMapper).GetMethod(nameof(MapTyped), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static readonly MethodInfo MapUnboundMethod =
+        typeof(ApiEndpointMapper).GetMethod(nameof(MapUnboundTyped), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static readonly MethodInfo MapResultMethod =
+        typeof(ApiEndpointMapper).GetMethod(nameof(MapResultTyped), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static IEndpointConventionBuilder MapTyped<TRequest, TResponse>(
+        EndpointGroup api, Type endpointType, ApiEndpointOptions options, bool noContent)
+        where TResponse : notnull
+    {
+        // The factory is closure-captured, so it lives and dies with the endpoint generation.
+        var factory = ActivatorUtilities.CreateFactory(endpointType, Type.EmptyTypes);
+
+        if (noContent)
+        {
+            return api.MapNoContent<TRequest>(options, async (context, request, cancellationToken) =>
+            {
+                var endpoint = (ApiEndpoint<TRequest>)factory(context.RequestServices, null);
+                endpoint.HttpContext = context;
+                await endpoint.HandleAsync(request, cancellationToken);
+            });
+        }
+
+        return api.MapBody<TRequest, TResponse>(options, async (context, request, cancellationToken) =>
+        {
+            var endpoint = (ApiEndpoint<TRequest, TResponse>)factory(context.RequestServices, null);
+            endpoint.HttpContext = context;
+            return await endpoint.HandleAsync(request, cancellationToken);
+        });
+    }
+
+    private static IEndpointConventionBuilder MapUnboundTyped<TResponse>(
+        EndpointGroup api, Type endpointType, ApiEndpointOptions options)
+        where TResponse : notnull
+    {
+        var factory = ActivatorUtilities.CreateFactory(endpointType, Type.EmptyTypes);
+
+        return api.MapUnboundBody<TResponse>(options, async (context, cancellationToken) =>
+        {
+            var endpoint = (ApiEndpointWithoutRequest<TResponse>)factory(context.RequestServices, null);
+            endpoint.HttpContext = context;
+            return await endpoint.HandleAsync(cancellationToken);
+        });
+    }
+
+    private static IEndpointConventionBuilder MapRawEndpoint(
+        EndpointGroup api, Type endpointType, ApiEndpointOptions options)
+    {
+        var factory = ActivatorUtilities.CreateFactory(endpointType, Type.EmptyTypes);
+
+        return api.MapRaw(options, async context =>
+        {
+            var endpoint = (ApiEndpoint)factory(context.RequestServices, null);
+            endpoint.HttpContext = context;
+            await endpoint.HandleAsync(context.RequestAborted);
+        });
+    }
+
+    private static IEndpointConventionBuilder MapResultTyped<TRequest, TResponse>(
+        EndpointGroup api, Type endpointType, ApiEndpointOptions options)
+        where TResponse : notnull
+    {
+        var factory = ActivatorUtilities.CreateFactory(endpointType, Type.EmptyTypes);
+
+        return api.MapResultBody<TRequest, TResponse>(options, async (context, request, cancellationToken) =>
+        {
+            var endpoint = (ApiEndpointWithResult<TRequest, TResponse>)factory(context.RequestServices, null);
+            endpoint.HttpContext = context;
+            return await endpoint.HandleAsync(request, cancellationToken);
+        });
+    }
+
+    /// <summary>
+    /// Derives the operation identifier from where the endpoint class lives.
+    /// </summary>
+    /// <remarks>
+    /// The segments after an <c>Endpoints</c> namespace segment, concatenated: a class in
+    /// <c>Billing.Endpoints.Invoices.Get</c> becomes <c>InvoicesGet</c>. This is why the convention
+    /// puts one operation per folder, and why the class itself can just be called <c>Endpoint</c>.
+    /// Without such a segment the class name is used, falling back to the last namespace segment when
+    /// the class is itself named <c>Endpoint</c>. Setting <c>options.Operation</c> always wins.
+    /// </remarks>
+    private static string DeriveOperation(Type type)
+    {
+        var segments = (type.Namespace ?? string.Empty).Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var marker = Array.LastIndexOf(segments, "Endpoints");
+        if (marker >= 0 && marker < segments.Length - 1)
+            return string.Concat(segments[(marker + 1)..]);
+
+        if (!string.Equals(type.Name, "Endpoint", StringComparison.Ordinal))
+            return type.Name;
+
+        return segments.Length > 0
+            ? segments[^1]
+            : throw new InvalidOperationException(
+                $"Endpoint '{type.FullName}' has no operation identifier and none can be derived from its name or namespace. Set options.Operation in Configure.");
+    }
+
+    private static string Prefix(string? prefix, string route) =>
+        string.IsNullOrEmpty(prefix) ? route : $"{prefix.TrimEnd('/')}/{route.TrimStart('/')}";
+}

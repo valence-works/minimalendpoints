@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Contracts/PluginHost.Contracts.csproj" />
-    <ProjectReference Include="../../../src/NativeEndpoints/NativeEndpoints.csproj" />
+    <ProjectReference Include="../../../src/MinimalEndpoints/MinimalEndpoints.csproj" />
 
     <!--
       Built before the host, but deliberately not referenced: referencing it would load the plugin

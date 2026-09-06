@@ -70,7 +70,7 @@ public readonly record struct Slug(string Value) : IParsable<Slug> { /* ... */ }
 **Your own types.** Register a parser for anything else:
 
 ```csharp
-builder.Services.AddNativeEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
+builder.Services.AddMinimalEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
 ```
 
 A registered parser wins over the built-in fallbacks, so a host can override how one of its own
@@ -80,7 +80,7 @@ Anything else throws:
 
 ```
 Request parameter 'amount' has unsupported type 'Money'. Implement IParsable<Money>, or register
-a parser with AddNativeEndpoints(o => o.ValueBinders.Add<T>(...)), rather than widening the
+a parser with AddMinimalEndpoints(o => o.ValueBinders.Add<T>(...)), rather than widening the
 binder implicitly.
 ```
 

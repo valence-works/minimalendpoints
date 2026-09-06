@@ -72,7 +72,7 @@ builder.Services.AddDynamicEndpointApiExplorerRefresh();
 ## Verifying it yourself
 
 ```bash
-dotnet add package NativeEndpoints.Testing
+dotnet add package MinimalEndpoints.Testing
 ```
 
 ```csharp
@@ -101,7 +101,7 @@ The harness compiles a synthetic endpoint assembly, loads it into a collectible 
 serves a request, disposes the host, unloads, forces repeated full collections, and reports which
 stage still roots the context.
 
-The kit has no dependency on NativeEndpoints. What it measures today is its own synthetic endpoint
+The kit has no dependency on Minimal Endpoints. What it measures today is its own synthetic endpoint
 assembly, which is what proves the pattern. Measuring *your* host means the shape in
 `samples/PluginHost`: your own collectible context, your own plugin, loaded, served, unloaded, and
 counted. A hook for driving another framework's registration inside the harness is planned, not

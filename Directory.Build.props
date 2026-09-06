@@ -18,8 +18,8 @@
     <Authors>Valence Works</Authors>
     <Company>Valence Works</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/valence-works/NativeEndpoints</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/valence-works/NativeEndpoints</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/valence-works/MinimalEndpoints</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/valence-works/MinimalEndpoints</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
@@ -35,7 +35,7 @@
     rather than being repeated per project.
   -->
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)branding/native-endpoints-logo.png"
+    <None Include="$(MSBuildThisFileDirectory)branding/minimal-endpoints-logo.png"
           Pack="true"
           PackagePath="icon.png"
           Visible="false" />

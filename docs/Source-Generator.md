@@ -1,6 +1,6 @@
 # Source Generator
 
-Ships inside the `NativeEndpoints` package as an analyzer, so `dotnet add package NativeEndpoints`
+Ships inside the `MinimalEndpoints` package as an analyzer, so `dotnet add package MinimalEndpoints`
 brings it along. Nothing to configure.
 
 ## What it generates
@@ -24,7 +24,7 @@ public static class BillingEndpoints
 Call it instead of the reflective scan:
 
 ```csharp
-using NativeEndpoints.Generated;
+using MinimalEndpoints.Generated;
 
 app.MapEndpointGroup().Map(routePrefix: "/api");
 ```
@@ -73,7 +73,7 @@ A value binder is registered at runtime, and no analyzer can see that. Tell the 
 ```
 
 ```csharp
-builder.Services.AddNativeEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
+builder.Services.AddMinimalEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
 ```
 
 The attribute carries no runtime behavior. It exists so `NE0002` stays quiet for a type you have
@@ -88,7 +88,7 @@ Analyzers flow to consumers through a package's `analyzers/` folder, not through
 chain. Projects in this repository that want the generator reference it directly:
 
 ```xml
-<ProjectReference Include="../../src/NativeEndpoints.Generator/NativeEndpoints.Generator.csproj"
+<ProjectReference Include="../../src/MinimalEndpoints.Generator/MinimalEndpoints.Generator.csproj"
                   ReferenceOutputAssembly="false"
                   OutputItemType="Analyzer" />
 ```

@@ -1,4 +1,4 @@
-# NativeEndpoints
+# Minimal Endpoints
 
 A structured programming model for ASP.NET Core Minimal APIs. One class per endpoint, carrying its
 route, its metadata, and its handling. Ordinary ASP.NET Core underneath, all the way down.
@@ -7,7 +7,7 @@ route, its metadata, and its handling. Ordinary ASP.NET Core underneath, all the
 > mark what is planned rather than describing it as though it already exists.
 
 ```bash
-dotnet add package NativeEndpoints
+dotnet add package MinimalEndpoints
 ```
 
 ```csharp

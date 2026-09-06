@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The endpoint-class framework. It takes a framework reference and nothing else: no PackageReference,
+    so a consumer inherits no transitive NuGet graph and the only ASP.NET Core coupling is the TFM.
+  -->
+  <PropertyGroup>
+    <Description>A structured programming model for ASP.NET Core Minimal APIs. One class per endpoint, ordinary ASP.NET Core underneath.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>aspnetcore;minimal-api;endpoints;vertical-slice;openapi;aot;source-generator</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!--
+    The generator ships inside this package as an analyzer, so `dotnet add package MinimalEndpoints`
+    brings it along. ReferenceOutputAssembly is false because the compiler loads it; consumers never
+    reference it as a library.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="../MinimalEndpoints.Generator/MinimalEndpoints.Generator.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="PackGenerator" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="$(MSBuildThisFileDirectory)../MinimalEndpoints.Generator/bin/$(Configuration)/netstandard2.0/MinimalEndpoints.Generator.dll"
+                     PackagePath="analyzers/dotnet/cs"
+                     BuildAction="None" />
+    </ItemGroup>
+  </Target>
+
+</Project>

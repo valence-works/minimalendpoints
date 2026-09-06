@@ -202,7 +202,7 @@ now names the offending type and the five supported bases instead of failing opa
 - A routed `ApiEndpointWithoutRequest<TResponse>` endpoint made the generator emit a registration
   that did not compile. The shape now has a first-class generated path through the new public
   `EndpointGroup.MapGeneratedUnbound`, producing the same endpoint as the reflective mapper.
-- A host that never called `AddNativeEndpoints()` now fails at `MapEndpointGroup` time with the
+- A host that never called `AddMinimalEndpoints()` now fails at `MapEndpointGroup` time with the
   remedy in the message, instead of surfacing on the first binding failure or handler exception at
   runtime — where the unresolvable `IEndpointProblemWriter` turned the caller's real 400 into an
   opaque 500. The check accepts either the unkeyed registration or a writer keyed by the group's
@@ -298,7 +298,7 @@ site rather than failing after deployment.
 
 Endpoint assemblies in collectible load contexts are released. No process-global state, no static
 registry, handlers published as bare `RequestDelegate`, and completed metadata validated as the final
-convention, fail-closed. `NativeEndpoints.Testing` lets you assert it in your own suite;
+convention, fail-closed. `MinimalEndpoints.Testing` lets you assert it in your own suite;
 `samples/PluginHost` demonstrates it in a real host across repeated load and unload cycles.
 
 ### Release
@@ -311,13 +311,13 @@ credential in this repository or its organization secrets.
 
 | Package | Dependencies |
 |---|---|
-| `NativeEndpoints` | none, beyond the ASP.NET Core shared framework |
-| `NativeEndpoints.OpenApi` | `NativeEndpoints`, `Microsoft.AspNetCore.OpenApi` |
-| `NativeEndpoints.Testing` | `Microsoft.AspNetCore.TestHost`, `Microsoft.CodeAnalysis.CSharp` |
+| `MinimalEndpoints` | none, beyond the ASP.NET Core shared framework |
+| `MinimalEndpoints.OpenApi` | `MinimalEndpoints`, `Microsoft.AspNetCore.OpenApi` |
+| `MinimalEndpoints.Testing` | `Microsoft.AspNetCore.TestHost`, `Microsoft.CodeAnalysis.CSharp` |
 
 ### Known gaps
 
-- Route and query parameters appear in the OpenAPI document only with `NativeEndpoints.OpenApi`.
+- Route and query parameters appear in the OpenAPI document only with `MinimalEndpoints.OpenApi`.
 - The unload harness measures its own synthetic assembly; pointing it at another framework needs a
   registration hook that is not shipped.
 - The compatibility manifest builder did not travel from the originating codebase; its ownership

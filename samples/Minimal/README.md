@@ -34,7 +34,7 @@ Samples exist to find the sharp edges before users do. These are real, and none 
 **Route and query parameters needed solving separately.** Handlers are published as bare
 `RequestDelegate` so that API Explorer never retains a handler `MethodInfo` — that is what makes
 endpoint assemblies collectible. The cost is that API Explorer has nothing to infer parameters from.
-The library states them itself instead, and `NativeEndpoints.OpenApi` turns them into document
+The library states them itself instead, and `MinimalEndpoints.OpenApi` turns them into document
 parameters; this sample references it, which is why `GET /api/notes/{noteId}` documents `noteId`.
 Without that package the schemas are still correct and the parameters are simply absent.
 

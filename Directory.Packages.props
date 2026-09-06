@@ -15,7 +15,7 @@
       Microsoft.AspNetCore.OpenApi pulls in. Deleting this silently changes what restores: without it
       the graph resolves 2.0.0, which carries a high-severity advisory (GHSA-v5pm-xwqc-g5wc).
 
-      Note this affects the sample only. The NativeEndpoints package itself has no PackageReference
+      Note this affects the sample only. The MinimalEndpoints package itself has no PackageReference
       at all, so no consumer of the library inherits any of this.
     -->
     <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />

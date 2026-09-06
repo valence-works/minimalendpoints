@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="branding/banner.png" alt="NativeEndpoints — structured endpoints, native ASP.NET Core" width="100%">
+  <img src="branding/banner.png" alt="Minimal Endpoints — structured endpoints for ASP.NET Core Minimal APIs" width="100%">
 </p>
 
-# NativeEndpoints
+# Minimal Endpoints
 
 **A structured programming model for ASP.NET Core Minimal APIs.**
 
@@ -13,7 +13,7 @@ its metadata, and its handling. Ordinary ASP.NET Core underneath, all the way do
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)
 
 > **Status: preview.** Previews are published to
-> [nuget.org](https://www.nuget.org/packages/NativeEndpoints); the current line is
+> [nuget.org](https://www.nuget.org/packages/MinimalEndpoints); the current line is
 > `1.0.0-preview.3`. The API is settling but no longer moving weekly; breaking changes before 1.0
 > are possible and are listed in the [changelog](CHANGELOG.md).
 
@@ -42,7 +42,7 @@ Wire it up once:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddNativeEndpoints();
+builder.Services.AddMinimalEndpoints();
 
 var app = builder.Build();
 app.MapEndpointGroup().MapEndpointsFrom(typeof(Program).Assembly, routePrefix: "/api");
@@ -50,19 +50,19 @@ app.Run();
 ```
 
 ```bash
-dotnet add package NativeEndpoints
+dotnet add package MinimalEndpoints
 ```
 
 Generating an OpenAPI document? Add the integration too, so the route, query, and header parameters
 your endpoints bind appear in it:
 
 ```bash
-dotnet add package NativeEndpoints.OpenApi
+dotnet add package MinimalEndpoints.OpenApi
 ```
 
 ```csharp
 builder.Services.AddOpenApi();
-builder.Services.AddNativeEndpointsOpenApi();
+builder.Services.AddMinimalEndpointsOpenApi();
 ```
 
 ## Why
@@ -71,7 +71,7 @@ Minimal APIs are a good runtime and an awkward organizing principle. Past a few 
 choosing between a `Program.cs` nobody wants to open, a pile of extension methods that hide the route
 table, or a framework that replaces ASP.NET Core with its own parallel universe.
 
-NativeEndpoints takes the middle path. It gives you a place to put an endpoint and takes nothing away.
+Minimal Endpoints takes the middle path. It gives you a place to put an endpoint and takes nothing away.
 
 **Vertical slices, not layers.** An operation is one folder: its contract, its handler, its
 permissions, its tests. Changing an endpoint means opening one directory, not tracing a request
@@ -95,7 +95,7 @@ the metadata, and stops there.
 
 **Metadata that is correct by default.** API Explorer needs a `MethodInfo` in endpoint metadata to
 produce an `ApiDescription`; without one your endpoint silently vanishes from the OpenAPI document
-and any test that inspects the document passes vacuously. NativeEndpoints handles that once, for
+and any test that inspects the document passes vacuously. Minimal Endpoints handles that once, for
 every endpoint. So is the split between the status you return and the status you document, and the
 `401`/`403` pair, which is documented only where authorization metadata is actually present rather
 than stamped onto public endpoints that can never return it.
@@ -140,13 +140,13 @@ Anything else throws, loudly, rather than binding silently to a default. The sou
 ```
 NE0002: Contract 'Transfer' has parameter 'amount' of unsupported type 'Money'.
         Implement IParsable<Money>, or register a parser with
-        AddNativeEndpoints(o => o.ValueBinders.Add<Money>(...)).
+        AddMinimalEndpoints(o => o.ValueBinders.Add<Money>(...)).
 ```
 
 Register a parser for your own types:
 
 ```csharp
-builder.Services.AddNativeEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
+builder.Services.AddMinimalEndpoints(o => o.ValueBinders.Add<Money>(Money.TryParse));
 ```
 
 Body handling is explicit per endpoint via `options.BodyMode`: `None`, `Optional`, `Required`, or
@@ -190,7 +190,7 @@ unloading goes to die. Process-global registries, static configuration, and hand
 captured into endpoint metadata all root the assembly you are trying to release, and none of it is
 visible until you measure.
 
-NativeEndpoints is built so that does not happen:
+Minimal Endpoints is built so that does not happen:
 
 - No process-global discovery and no static registry. Registration is generated per assembly; the
   reflective fallback scans only the assembly you hand it, inside your own mapping call.
@@ -201,7 +201,7 @@ NativeEndpoints is built so that does not happen:
 - Endpoint metadata is validated as the final convention, fail-closed, and rejects any collectible
   type, member, delegate, serializer context, or `JsonTypeInfo`.
 
-Do not take our word for it. `NativeEndpoints.Testing` compiles a synthetic endpoint assembly, loads
+Do not take our word for it. `MinimalEndpoints.Testing` compiles a synthetic endpoint assembly, loads
 it collectibly, maps it, serves it, disposes the host, unloads, and reports which stage still roots
 the context:
 
@@ -215,10 +215,10 @@ public void Endpoint_assemblies_are_collected()
 ```
 
 ```bash
-dotnet add package NativeEndpoints.Testing
+dotnet add package MinimalEndpoints.Testing
 ```
 
-The kit has no dependency on NativeEndpoints itself. What the harness measures today is its own
+The kit has no dependency on Minimal Endpoints itself. What the harness measures today is its own
 synthetic endpoint assembly, which is what proves the pattern rather than the library's marketing;
 it can also be asked to introduce a deliberate leak, so you can confirm it still detects one.
 Measuring *your* host means the shape in [`samples/PluginHost`](samples/PluginHost), where a real
@@ -231,9 +231,9 @@ FastEndpoints is a mature, popular, and genuinely good library, and it does cons
 this one: validation, versioning, job queues, response caching integration, and a large testing
 surface. If you want a batteries-included framework, use it.
 
-Choose NativeEndpoints when you want the endpoint-class shape and nothing else.
+Choose Minimal Endpoints when you want the endpoint-class shape and nothing else.
 
-| | NativeEndpoints | FastEndpoints |
+| | Minimal Endpoints | FastEndpoints |
 |---|---|---|
 | Endpoint classes | Yes | Yes |
 | Underlying stack | Minimal APIs, unmodified | Its own layer over Minimal APIs |
@@ -256,7 +256,7 @@ does not attribute it to a specific static root, and it is not a claim about Fas
 other respect. It is the reason this library exists.
 
 On speed: [`benchmarks/`](benchmarks) holds a BenchmarkDotNet suite comparing a raw minimal API,
-NativeEndpoints through both mapping paths, and FastEndpoints on the same two operations, in
+Minimal Endpoints through both mapping paths, and FastEndpoints on the same two operations, in
 process. Run it yourself rather than trusting a table; the in-repo runs show the generated path at
 parity with a hand-written minimal API on both time and allocations.
 
@@ -274,7 +274,7 @@ Native AOT **is** supported, through the source generator. See
 
 ## Documentation
 
-Full documentation lives in the [wiki](https://github.com/valence-works/NativeEndpoints/wiki),
+Full documentation lives in the [wiki](https://github.com/valence-works/MinimalEndpoints/wiki),
 published from [`docs/`](docs) on every push to `main`.
 
 [Getting started](docs/Getting-Started.md) &middot;

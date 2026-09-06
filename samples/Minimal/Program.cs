@@ -1,14 +1,14 @@
 using Minimal;
 using Minimal.Notes;
-using NativeEndpoints;
-using NativeEndpoints.OpenApi;
-using NativeEndpoints.Generated;
+using MinimalEndpoints;
+using MinimalEndpoints.OpenApi;
+using MinimalEndpoints.Generated;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddNativeEndpoints();
+builder.Services.AddMinimalEndpoints();
 builder.Services.AddOpenApi();
-builder.Services.AddNativeEndpointsOpenApi();
+builder.Services.AddMinimalEndpointsOpenApi();
 builder.Services.AddSingleton<NoteStore>();
 builder.Services.AddSingleton<IEndpointExceptionTranslator, NoteFaultTranslator>();
 

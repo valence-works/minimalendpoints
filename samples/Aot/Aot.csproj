@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/NativeEndpoints/NativeEndpoints.csproj" />
-    <ProjectReference Include="../../src/NativeEndpoints.Generator/NativeEndpoints.Generator.csproj"
+    <ProjectReference Include="../../src/MinimalEndpoints/MinimalEndpoints.csproj" />
+    <ProjectReference Include="../../src/MinimalEndpoints.Generator/MinimalEndpoints.Generator.csproj"
                       ReferenceOutputAssembly="false"
                       OutputItemType="Analyzer" />
   </ItemGroup>

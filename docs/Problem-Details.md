@@ -11,7 +11,7 @@ Anything unhandled becomes a 500 and is logged with the contract type that faile
 
 ## Out of the box
 
-`AddNativeEndpoints()` registers a writer that emits RFC 9457 `ProblemDetails` through ASP.NET Core's
+`AddMinimalEndpoints()` registers a writer that emits RFC 9457 `ProblemDetails` through ASP.NET Core's
 `IProblemDetailsService`, with each error key becoming an extension member. A host that configures
 nothing still returns a sane body.
 

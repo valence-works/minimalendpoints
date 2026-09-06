@@ -6,8 +6,8 @@ operations, all in-process via `Microsoft.AspNetCore.TestHost`:
 | Stack | What it is |
 |---|---|
 | `RawMinimalApi` | Hand-written `MapGet`/`MapPost` lambdas. The baseline. |
-| `NativeReflective` | NativeEndpoints endpoint classes mapped via `MapEndpointsFrom(assembly)` (the reflective binder). |
-| `NativeGenerated` | The same endpoint classes mapped via the source-generated `Map()` (the emitted binder). |
+| `MinimalReflective` | Minimal Endpoints endpoint classes mapped via `MapEndpointsFrom(assembly)` (the reflective binder). |
+| `MinimalGenerated` | The same endpoint classes mapped via the source-generated `Map()` (the emitted binder). |
 | `FastEndpoints` | The same operations on [FastEndpoints](https://fast-endpoints.com/) 8.3.0. |
 
 Two scenarios, kept semantically identical everywhere:
@@ -28,19 +28,19 @@ allocations per request.
 Full run (takes a while; BenchmarkDotNet decides iteration counts):
 
 ```bash
-dotnet run -c Release --project benchmarks/NativeEndpoints.Benchmarks
+dotnet run -c Release --project benchmarks/MinimalEndpoints.Benchmarks
 ```
 
 Quick smoke, one cold iteration of everything (checks wiring, not performance):
 
 ```bash
-dotnet run -c Release --project benchmarks/NativeEndpoints.Benchmarks -- --job dry --filter '*'
+dotnet run -c Release --project benchmarks/MinimalEndpoints.Benchmarks -- --job dry --filter '*'
 ```
 
 Subset by name:
 
 ```bash
-dotnet run -c Release --project benchmarks/NativeEndpoints.Benchmarks -- --filter '*PostJsonBody*'
+dotnet run -c Release --project benchmarks/MinimalEndpoints.Benchmarks -- --filter '*PostJsonBody*'
 ```
 
 `--list flat` shows the available benchmark names; `--job short` is a faster-but-rougher

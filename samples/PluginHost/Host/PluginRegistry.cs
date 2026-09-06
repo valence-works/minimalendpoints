@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using NativeEndpoints;
+using MinimalEndpoints;
 
 namespace PluginHost.Host;
 

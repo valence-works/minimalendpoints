@@ -7,7 +7,7 @@ namespace PluginHost.Host;
 /// A collectible context holding exactly one plugin assembly.
 /// </summary>
 /// <remarks>
-/// Everything the plugin shares with the host - the contracts assembly, NativeEndpoints, ASP.NET Core
+/// Everything the plugin shares with the host - the contracts assembly, MinimalEndpoints, ASP.NET Core
 /// itself - must resolve to the copy already loaded in the default context. Returning null from
 /// <see cref="Load"/> is what delegates that. Loading a second copy would give the host and the
 /// plugin two CLR identities for the same type, and casting an endpoint to

@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Contracts/PluginHost.Contracts.csproj" Private="false" ExcludeAssets="runtime" />
-    <ProjectReference Include="../../../src/NativeEndpoints/NativeEndpoints.csproj" Private="false" ExcludeAssets="runtime" />
+    <ProjectReference Include="../../../src/MinimalEndpoints/MinimalEndpoints.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
 </Project>

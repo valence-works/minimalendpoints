@@ -40,10 +40,10 @@ jobs:
           fi
 
       - name: Build
-        run: dotnet build NativeEndpoints.slnx --configuration Release
+        run: dotnet build MinimalEndpoints.slnx --configuration Release
 
       - name: Test
-        run: dotnet test NativeEndpoints.slnx --configuration Release --no-build
+        run: dotnet test MinimalEndpoints.slnx --configuration Release --no-build
 
       # The AOT claim ships with the package, so it is verified before the package does.
       - name: Verify native AOT
@@ -51,7 +51,7 @@ jobs:
 
       - name: Pack
         run: >
-          dotnet pack NativeEndpoints.slnx --configuration Release --no-build
+          dotnet pack MinimalEndpoints.slnx --configuration Release --no-build
           --output artifacts -p:Version=${{ steps.version.outputs.value }}
 
       - uses: actions/upload-artifact@v4

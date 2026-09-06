@@ -9,7 +9,7 @@ Before changing anything, find out whether you actually have the problem this li
 test kit works against any endpoint framework:
 
 ```bash
-dotnet add package NativeEndpoints.Testing
+dotnet add package MinimalEndpoints.Testing
 ```
 
 If your assemblies already collect, unload safety is not a reason to move, and the rest of this page
@@ -17,7 +17,7 @@ is about ergonomics rather than correctness.
 
 ## Shape mapping
 
-| FastEndpoints | NativeEndpoints |
+| FastEndpoints | Minimal Endpoints |
 |---|---|
 | `Endpoint<TRequest, TResponse>` | `ApiEndpoint<TRequest, TResponse>` |
 | `Endpoint<TRequest>` | `ApiEndpoint<TRequest>` (204) or `ApiEndpointWithResult<,>` |
@@ -98,5 +98,5 @@ write, which is the point, but it does mean an endpoint you forget to map simply
 
 ## Migrating incrementally
 
-Both can run in the same host. Map NativeEndpoints groups alongside `UseFastEndpoints()` and move one
+Both can run in the same host. Map Minimal Endpoints groups alongside `UseFastEndpoints()` and move one
 resource at a time; nothing in either library is process-global in a way that conflicts.

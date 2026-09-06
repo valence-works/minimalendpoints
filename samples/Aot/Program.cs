@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
 using Aot.Endpoints.Widgets.Get;
 using Aot.Endpoints.Widgets.Import;
-using NativeEndpoints;
-using NativeEndpoints.Generated;
+using MinimalEndpoints;
+using MinimalEndpoints.Generated;
 
 var builder = WebApplication.CreateSlimBuilder(args);
-builder.Services.AddNativeEndpoints();
+builder.Services.AddMinimalEndpoints();
 builder.Services.AddSingleton<WidgetStore>();
 
 var app = builder.Build();

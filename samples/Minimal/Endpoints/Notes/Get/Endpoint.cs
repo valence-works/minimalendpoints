@@ -1,5 +1,5 @@
 using Minimal.Notes;
-using NativeEndpoints;
+using MinimalEndpoints;
 
 namespace Minimal.Endpoints.Notes.Get;
 

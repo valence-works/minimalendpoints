@@ -1,4 +1,4 @@
-using NativeEndpoints;
+using MinimalEndpoints;
 using PluginHost.Contracts;
 
 namespace PluginHost.Plugin.Endpoints.Greetings.List;

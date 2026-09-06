@@ -1,9 +1,9 @@
-using NativeEndpoints;
+using MinimalEndpoints;
 using PluginHost.Host;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddNativeEndpoints();
+builder.Services.AddMinimalEndpoints();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton<PluginEndpointDataSource>();
 builder.Services.AddSingleton<PluginRegistry>();

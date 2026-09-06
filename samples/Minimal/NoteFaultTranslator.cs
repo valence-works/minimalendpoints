@@ -1,4 +1,4 @@
-using NativeEndpoints;
+using MinimalEndpoints;
 using Minimal.Notes;
 
 namespace Minimal;

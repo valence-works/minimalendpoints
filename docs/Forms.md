@@ -151,7 +151,7 @@ Add the optional package and the form fields are documented as a multipart reque
 
 ```csharp
 builder.Services.AddOpenApi();
-builder.Services.AddNativeEndpointsOpenApi();
+builder.Services.AddMinimalEndpointsOpenApi();
 ```
 
 ```yaml
