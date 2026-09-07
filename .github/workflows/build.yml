@@ -1,66 +1,45 @@
 name: build
 
+# Continuous integration: build, test, and verify every push to main and every pull request, then
+# deploy a green main build to GitHub Packages. The build, test, and AOT jobs live in ci.yml and are
+# shared with release.yml, which deploys to nuget.org instead.
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
-  packages: write
-
-env:
-  DOTNET_NOLOGO: true
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  build:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      # Main builds are numbered from the run as prereleases of the next patch, so every green build
+      # is installable from GitHub Packages and sorts after the last release. Bump the base after
+      # each release. Releases take their version from the release tag instead; see release.yml.
+      version: 1.0.1-alpha.${{ github.run_number }}
+
+  deploy:
+    name: deploy to GitHub Packages
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          fetch-depth: 0
+          name: packages
+          path: artifacts
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore
-        run: dotnet restore MinimalEndpoints.slnx
-
-      - name: Build
-        run: dotnet build MinimalEndpoints.slnx --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test MinimalEndpoints.slnx --configuration Release --no-build --verbosity normal
-
-      # The AOT claim is only worth making if something checks it. IL warnings are errors here, so a
-      # reflective path creeping back into the generated flow fails the build rather than the release.
-      - name: Verify native AOT
-        run: >
-          dotnet publish samples/Aot/Aot.csproj
-          --configuration Release
-          -r linux-x64
-          --output artifacts/aot
-
-      # Prereleases are numbered from the run, so every green main build is installable from
-      # GitHub Packages. nuget.org opens at 1.0.0-preview.1, on the gates in the README.
-      - name: Pack
-        run: >
-          dotnet pack MinimalEndpoints.slnx --configuration Release --no-build
-          --output artifacts
-          -p:Version=1.0.0-alpha.${{ github.run_number }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: packages
-          path: artifacts/*
-
       - name: Publish to GitHub Packages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: >
           dotnet nuget push "artifacts/*.nupkg"
           --source https://nuget.pkg.github.com/valence-works/index.json

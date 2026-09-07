@@ -1,0 +1,91 @@
+name: ci
+
+# The build, test, and native-AOT stages shared by build.yml (every push and pull request) and
+# release.yml (a published GitHub release). Each stage is its own job so a failure points at the
+# stage that failed, and so the deploy jobs in the calling workflows can depend on all three.
+#
+# Callers pass the version to stamp. The build job produces the `packages` artifact; the callers'
+# deploy jobs push it, so a package that reaches a feed is the exact one that was tested.
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Package version to stamp (for example 1.0.0 or 1.0.1-alpha.42)'
+        required: true
+        type: string
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SOLUTION: MinimalEndpoints.slnx
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so Source Link records the commit the package was built from.
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore "$SOLUTION"
+
+      # The version is stamped at build time rather than at pack time, so the assembly's informational
+      # version matches the package version it ships in.
+      - name: Build
+        run: >
+          dotnet build "$SOLUTION" --configuration Release --no-restore
+          -p:Version=${{ inputs.version }}
+
+      - name: Pack
+        run: >
+          dotnet pack "$SOLUTION" --configuration Release --no-build
+          --output artifacts
+          -p:Version=${{ inputs.version }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*.*nupkg
+          if-no-files-found: error
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Compiles again rather than downloading the build job's output: the test host needs the full
+      # bin and obj trees, and shipping those between jobs costs more than a second compile.
+      - name: Test
+        run: dotnet test "$SOLUTION" --configuration Release --verbosity normal
+
+  # The AOT claim is only worth making if something checks it. IL warnings are errors here, so a
+  # reflective path creeping back into the generated flow fails this job rather than the release.
+  aot:
+    name: verify native AOT
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish the AOT sample
+        run: >
+          dotnet publish samples/Aot/Aot.csproj
+          --configuration Release
+          -r linux-x64
+          --output artifacts/aot

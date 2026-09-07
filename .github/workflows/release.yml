@@ -1,63 +1,63 @@
 name: release
 
 # Publishing to nuget.org is effectively permanent: a package can be unlisted but never deleted, and
-# a version number can never be reused. So this runs only on an explicit tag, never on a push to
-# main, and it verifies before it publishes.
+# a version number can never be reused. So this runs only when a GitHub release is published, never
+# on a push, and it builds and verifies the tagged commit before it publishes.
+#
+# To release: draft a GitHub release with a new tag named v<version> (for example v1.0.0) and
+# publish it. The tag decides the package version; nothing in the repository has to change.
+#
+# The Trusted Publishing policy on nuget.org names this file, so the deploy job has to stay in
+# release.yml. Renaming the file breaks publishing until the policy is updated to match.
 on:
-  push:
-    tags: ['v*']
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to publish, without a leading v (for example 1.0.0-preview.1)'
-        required: true
+  release:
+    types: [published]
 
 permissions:
   contents: read
-  # Lets the job request a short-lived OIDC token from GitHub, which nuget.org exchanges for a
-  # temporary API key. No long-lived publishing credential exists anywhere in this repository.
-  id-token: write
 
 jobs:
-  publish:
+  version:
+    name: resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          case "$TAG" in
+            v[0-9]*) echo "value=${TAG#v}" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Release tag '$TAG' must be v<version>, for example v1.0.0 or v1.1.0-preview.1"; exit 1 ;;
+          esac
+
+  ci:
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    with:
+      version: ${{ needs.version.outputs.value }}
+
+  deploy:
+    name: deploy to nuget.org
+    needs: [version, ci]
     runs-on: ubuntu-latest
     # Configure required reviewers on this environment to gate the publish behind an approval.
     environment: nuget
+    permissions:
+      contents: read
+      # Lets the job request a short-lived OIDC token from GitHub, which nuget.org exchanges for a
+      # temporary API key. No long-lived publishing credential exists anywhere in this repository.
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-
-      - name: Resolve version
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build
-        run: dotnet build MinimalEndpoints.slnx --configuration Release
-
-      - name: Test
-        run: dotnet test MinimalEndpoints.slnx --configuration Release --no-build
-
-      # The AOT claim ships with the package, so it is verified before the package does.
-      - name: Verify native AOT
-        run: dotnet publish samples/Aot/Aot.csproj --configuration Release -r linux-x64 --output artifacts/aot
-
-      - name: Pack
-        run: >
-          dotnet pack MinimalEndpoints.slnx --configuration Release --no-build
-          --output artifacts -p:Version=${{ steps.version.outputs.value }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ steps.version.outputs.value }}
-          path: artifacts/*.*nupkg
 
       # Requested immediately before the push: the temporary key is valid for one hour, and one
       # token buys exactly one key.
