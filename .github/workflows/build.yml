@@ -19,7 +19,7 @@ jobs:
       # Main builds are numbered from the run as prereleases of the next patch, so every green build
       # is installable from GitHub Packages and sorts after the last release. Bump the base after
       # each release. Releases take their version from the release tag instead; see release.yml.
-      version: 1.0.1-alpha.${{ github.run_number }}
+      version: 1.1.0-alpha.${{ github.run_number }}
 
   deploy:
     name: deploy to GitHub Packages

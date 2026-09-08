@@ -31,9 +31,10 @@ their severities and categories stable.
 ### Release
 
 The pipeline is staged: build, test, and native-AOT verification are separate jobs, and only a
-run in which all three pass deploys. A green push to `main` goes to GitHub Packages as
-`1.0.1-alpha.<run>`; a published GitHub release goes to nuget.org under the version in its tag. The
-package that reaches a feed is the one artifact the test and AOT jobs ran against, not a rebuild.
+run in which all three pass deploys. A green push to `main` goes to GitHub Packages as an alpha
+of the next version, numbered from the run; a published GitHub release goes to nuget.org under the
+version in its tag. The package that reaches a feed is the one artifact the test and AOT jobs ran
+against, not a rebuild.
 
 ## 1.0.0-preview.6
 
