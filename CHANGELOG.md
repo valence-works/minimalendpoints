@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.0.0
+
+The first stable release: the six previews, under a new name, with the public API now held to
+semantic versioning. No API moved between preview.6 and 1.0.0 apart from the rename below.
+
+**Renamed to Minimal Endpoints.** The root namespace is `MinimalEndpoints` rather than
+`NativeEndpoints`, and the packages are `ValenceWorks.MinimalEndpoints`,
+`ValenceWorks.MinimalEndpoints.OpenApi`, and `ValenceWorks.MinimalEndpoints.Testing`. The new name
+says what the library is — a structured programming model *for* Minimal APIs, ordinary ASP.NET Core
+underneath — where the old one suggested something lower-level than it is. The package IDs carry
+the organization prefix because the bare `MinimalEndpoints` ID on nuget.org belongs to an unrelated
+project; the namespace does not, so `using MinimalEndpoints;` is the whole of what a consumer
+types after the install. Moving a preview host is a package swap and a namespace rename:
+`NativeEndpoints` → `ValenceWorks.MinimalEndpoints`, `NativeEndpoints.OpenApi` →
+`ValenceWorks.MinimalEndpoints.OpenApi`, `NativeEndpoints.Testing` →
+`ValenceWorks.MinimalEndpoints.Testing`, and `using NativeEndpoints;` → `using MinimalEndpoints;`.
+Generated code is regenerated on the next build, so nothing needs hand-editing beyond the
+`using`s. There will be no further releases under the old name.
+
+**The analyzer rules ship.** `NE0001` through `NE0006` move from the unshipped to the shipped
+analyzer release under 1.0.0, which is the point at which Roslyn's release tracking starts holding
+their severities and categories stable.
+
+### Fixed
+
+- **`NE0003` was undocumented.** The guide now covers the diagnostic that reports a `Configure`
+  reading constructor-injected state, which is null at map time (#9).
+
+### Release
+
+The pipeline is staged: build, test, and native-AOT verification are separate jobs, and only a
+run in which all three pass deploys. A green push to `main` goes to GitHub Packages as
+`1.0.1-alpha.<run>`; a published GitHub release goes to nuget.org under the version in its tag. The
+package that reaches a feed is the one artifact the test and AOT jobs ran against, not a rebuild.
+
 ## 1.0.0-preview.6
 
 **A body mode for contracts that reject a literal-null payload at the media gate.**
