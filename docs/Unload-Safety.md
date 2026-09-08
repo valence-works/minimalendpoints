@@ -72,7 +72,7 @@ builder.Services.AddDynamicEndpointApiExplorerRefresh();
 ## Verifying it yourself
 
 ```bash
-dotnet add package MinimalEndpoints.Testing
+dotnet add package ValenceWorks.MinimalEndpoints.Testing
 ```
 
 ```csharp

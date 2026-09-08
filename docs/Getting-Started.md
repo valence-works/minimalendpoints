@@ -3,7 +3,7 @@
 ## Install
 
 ```bash
-dotnet add package MinimalEndpoints
+dotnet add package ValenceWorks.MinimalEndpoints
 ```
 
 Targets `net10.0`. The package takes a framework reference and no `PackageReference`, so it adds

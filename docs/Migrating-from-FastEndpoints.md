@@ -9,7 +9,7 @@ Before changing anything, find out whether you actually have the problem this li
 test kit works against any endpoint framework:
 
 ```bash
-dotnet add package MinimalEndpoints.Testing
+dotnet add package ValenceWorks.MinimalEndpoints.Testing
 ```
 
 If your assemblies already collect, unload safety is not a reason to move, and the rest of this page

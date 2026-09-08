@@ -12,10 +12,10 @@ its metadata, and its handling. Ordinary ASP.NET Core underneath, all the way do
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4)
 
-> **Status: preview.** Previews are published to
-> [nuget.org](https://www.nuget.org/packages/MinimalEndpoints); the current line is
-> `1.0.0-preview.3`. The API is settling but no longer moving weekly; breaking changes before 1.0
-> are possible and are listed in the [changelog](CHANGELOG.md).
+> **Status: stable.** `1.0.0` is published to
+> [nuget.org](https://www.nuget.org/packages/ValenceWorks.MinimalEndpoints). The public API
+> follows semantic versioning from here: a breaking change means a new major version, and every
+> change is listed in the [changelog](CHANGELOG.md).
 
 ---
 
@@ -50,14 +50,14 @@ app.Run();
 ```
 
 ```bash
-dotnet add package MinimalEndpoints
+dotnet add package ValenceWorks.MinimalEndpoints
 ```
 
 Generating an OpenAPI document? Add the integration too, so the route, query, and header parameters
 your endpoints bind appear in it:
 
 ```bash
-dotnet add package MinimalEndpoints.OpenApi
+dotnet add package ValenceWorks.MinimalEndpoints.OpenApi
 ```
 
 ```csharp
@@ -215,7 +215,7 @@ public void Endpoint_assemblies_are_collected()
 ```
 
 ```bash
-dotnet add package MinimalEndpoints.Testing
+dotnet add package ValenceWorks.MinimalEndpoints.Testing
 ```
 
 The kit has no dependency on Minimal Endpoints itself. What the harness measures today is its own

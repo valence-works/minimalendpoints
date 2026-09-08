@@ -1,7 +1,7 @@
 # Source Generator
 
-Ships inside the `MinimalEndpoints` package as an analyzer, so `dotnet add package MinimalEndpoints`
-brings it along. Nothing to configure.
+Ships inside the `ValenceWorks.MinimalEndpoints` package as an analyzer, so
+`dotnet add package ValenceWorks.MinimalEndpoints` brings it along. Nothing to configure.
 
 ## What it generates
 

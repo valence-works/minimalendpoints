@@ -15,6 +15,12 @@
     when it releases.
   -->
   <PropertyGroup Label="Package">
+    <!--
+      The package ID carries the organization prefix because the bare `MinimalEndpoints` ID on
+      nuget.org belongs to an unrelated project. Assembly names and namespaces stay unprefixed:
+      `using MinimalEndpoints;` is the whole of what a consumer types after the install.
+    -->
+    <PackageId>ValenceWorks.$(MSBuildProjectName)</PackageId>
     <Authors>Valence Works</Authors>
     <Company>Valence Works</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

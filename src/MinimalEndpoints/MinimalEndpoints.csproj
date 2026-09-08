@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <!--
-    The generator ships inside this package as an analyzer, so `dotnet add package MinimalEndpoints`
+    The generator ships inside this package as an analyzer, so `dotnet add package ValenceWorks.MinimalEndpoints`
     brings it along. ReferenceOutputAssembly is false because the compiler loads it; consumers never
     reference it as a library.
   -->

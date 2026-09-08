@@ -7,7 +7,7 @@ route, its metadata, and its handling. Ordinary ASP.NET Core underneath, all the
 > mark what is planned rather than describing it as though it already exists.
 
 ```bash
-dotnet add package MinimalEndpoints
+dotnet add package ValenceWorks.MinimalEndpoints
 ```
 
 ```csharp

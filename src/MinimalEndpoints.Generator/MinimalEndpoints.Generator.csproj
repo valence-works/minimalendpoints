@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Shipped inside the MinimalEndpoints package as an analyzer asset, so `dotnet add package
-    MinimalEndpoints` brings the generator with it. Roslyn analyzers load into the compiler, which
-    targets netstandard2.0; this is the one project in the repository that does not target net10.0.
+    Shipped inside the ValenceWorks.MinimalEndpoints package as an analyzer asset, so
+    `dotnet add package ValenceWorks.MinimalEndpoints` brings the generator with it. Roslyn
+    analyzers load into the compiler, which targets netstandard2.0; this is the one project in the
+    repository that does not target net10.0.
   -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
